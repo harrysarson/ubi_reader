@@ -116,7 +116,7 @@ def extract_dents(ubifs, inodes, dent_node, path='', perms=False):
             log(extract_dents, 'Make Symlink: %s > %s' % (dent_path, inode['ino'].data))
 
         except Exception as e:
-            error(extract_dents, 'Warn', 'SYMLINK Fail: %s' % e) 
+            error(extract_dents, 'Warn', 'SYMLINK Fail: %s' % e)
 
     elif dent_node.type in [UBIFS_ITYPE_BLK, UBIFS_ITYPE_CHR]:
         try:
@@ -133,7 +133,7 @@ def extract_dents(ubifs, inodes, dent_node, path='', perms=False):
 
                 if perms:
                     _set_file_perms(dent_path, inode)
-                
+
         except Exception as e:
             error(extract_dents, 'Warn', 'DEV Fail: %s' % e)
 
@@ -158,8 +158,8 @@ def extract_dents(ubifs, inodes, dent_node, path='', perms=False):
 
 
 def _set_file_perms(path, inode):
-    os.chown(path, inode['ino'].uid, inode['ino'].gid)
-    os.chmod(path, inode['ino'].mode)
+    os.chown(path, inode['ino'].uid, inode['ino'].gid, follow_symlinks=False)
+    os.chmod(path, inode['ino'].mode, follow_symlinks=False)
     verbose_log(_set_file_perms, 'perms:%s, owner: %s.%s, path: %s' % (inode['ino'].mode, inode['ino'].uid, inode['ino'].gid, path))
 
 def _set_file_timestamps(path, inode):
@@ -179,7 +179,7 @@ def _process_reg_file(ubifs, inode, path):
         if 'data' in inode:
             compr_type = 0
             sorted_data = sorted(inode['data'], key=lambda x: x.key['khash'])
-            last_khash = start_key - 1 
+            last_khash = start_key - 1
 
             for data in sorted_data:
                 # If data nodes are missing in sequence, fill in blanks
@@ -198,9 +198,9 @@ def _process_reg_file(ubifs, inode, path):
 
     except Exception as e:
         error(_process_reg_file, 'Warn', 'inode num:%s path:%s :%s' % (inode['ino'].key['ino_num'], path, e))
-    
+
     # Pad end of file with \x00 if needed.
     if inode['ino'].size > len(buf):
         buf += b'\x00' * (inode['ino'].size - len(buf))
-        
+
     return bytes(buf)
